@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Start the redis server
+PORT=59465
+/home/aymen/RADICAL/parsl_rp_mpi/redis-stable/src/redis-server --port $PORT --protected-mode no &> redis.out &
+REDIS=$!
+
+export RADICAL_LOG_LVL="DEBUG"
+export RADICAL_PROFILE="TRUE"
+export RADICAL_PILOT_DBURL=mongodb://aymen:vdpDgWNX2B8GqVhw@95.217.193.116:27017/radical3
+
+echo "Redis started on $HOSTNAME:$PORT"
+
+/home/aymen/ve/mpi/bin/python /home/aymen/RADICAL/parsl_rp_mpi/colmena_rp.py \
+	                                                           --redis-host $HOSTNAME \
+	                                                           --redis-port $PORT \
+	                                                           --task-input-size 5 \
+	                                                           --task-output-size 5 \
+	                                                           --task-interval 0.1 \
+	                                                           --task-count 50 \
+                                                                   --output-dir runs/full_test_unique_30s_50x50_v3 \
+
+# Kill the redis server
+kill $REDIS
