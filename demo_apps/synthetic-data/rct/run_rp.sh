@@ -7,7 +7,6 @@ REDIS=$!
 
 export RADICAL_LOG_LVL="DEBUG"
 export RADICAL_PROFILE="TRUE"
-export RADICAL_PILOT_DBURL=mongodb://aymen:vdpDgWNX2B8GqVhw@95.217.193.116:27017/radical3
 
 echo "Redis started on $HOSTNAME:$PORT"
 
