@@ -1,6 +1,5 @@
 """Parsl method server and related utilities"""
 import os
-import copy
 import logging
 import platform
 from functools import partial
@@ -13,7 +12,6 @@ from traceback import TracebackException
 
 import parsl
 from parsl import python_app, ThreadPoolExecutor
-from radical.pilot.agent.executing.parsl_rp import RADICALExecutor
 from parsl.config import Config
 from parsl.app.python import PythonApp
 from parsl.dataflow.futures import AppFuture
@@ -217,10 +215,9 @@ class ParslMethodServer(BaseMethodServer):
         super().__init__(queues, timeout)
 
         # Insert _output_workers to the thread count
-        self.default_executors = default_executors
-        self.executors = config.executors.copy()
-        self.executors.append(ThreadPoolExecutor(label='_output_workers', max_threads=num_output_workers))
-        config.executors = self.executors
+        executors = config.executors.copy()
+        executors.append(ThreadPoolExecutor(label='_output_workers', max_threads=num_output_workers))
+        config.executors = executors
 
         # Get a list of default executors that _does not_ include the output workers
         if default_executors == 'all':
@@ -239,8 +236,8 @@ class ParslMethodServer(BaseMethodServer):
                 function, options = method
             else:
                 function = method
-                options = {'executors': self.default_executors}
-                logger.info(f'Using default executors for {function.__name__}: {self.default_executors}')
+                options = {'executors': default_executors}
+                logger.info(f'Using default executors for {function.__name__}: {default_executors}')
 
             # Make the Parsl app
             name = function.__name__
@@ -310,16 +307,6 @@ class ParslMethodServer(BaseMethodServer):
 
     def run(self) -> None:
         # Launch the Parsl workflow engine
-        self.executors.append(RADICALExecutor(label          = 'RADICALExecutor',
-                                              resource       = 'xsede.expanse_funcs_mpirun',
-                                              login_method   = 'ssh',
-                                              project        = 'unc100',
-                                              partition      = 'compute',
-                                              walltime       = 30,
-                                              managed        = True,
-                                              max_tasks      = 128,
-                                              max_task_cores = 128))
-        self.config.executors = self.executors
         parsl.load(self.config)
         logger.info(f"Launched Parsl DFK. Process id: {os.getpid()}")
 

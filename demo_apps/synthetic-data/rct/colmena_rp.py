@@ -13,7 +13,7 @@ from typing import Any
 
 from parsl.addresses import address_by_hostname
 from parsl.config import Config
-
+from radical.pilot.agent.executing.parsl_rp import RADICALExecutor
 from colmena.method_server import ParslMethodServer
 #from colmena.method_server import ParslMethodServer
 from colmena.redis.queue import make_queue_pairs, ClientQueues
@@ -157,8 +157,19 @@ if __name__ == "__main__":
         serialization_method='pickle',
         value_server_threshold=value_server_threshold
     )
-
-    config = Config()
+    executors = [RADICALExecutor(label = 'RADICALExecutor',
+                                 resource       = 'xsede.expanse_funcs_mpirun',
+                                 login_method   = 'ssh',
+                                 project        = 'unc100',
+                                 partition      = 'compute',
+                                 walltime       = 30,
+                                 managed        = True,
+                                 max_tasks      = 128,
+                                 max_task_cores = 128,
+                                 enable_redis   = True,
+                                 redis_port     = int(args.redis_port),
+                                 redis_host     = args.redis_host)]
+    config = Config(executors=executors, run_dir=out_dir)
 
     doer = ParslMethodServer([target_function], server_queues, config)
 
