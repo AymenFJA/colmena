@@ -301,7 +301,7 @@ class ParslMethodServer(BaseMethodServer):
         dfk = parsl.dfk()
         dfk.wait_for_current_tasks()
         logger.info(f"All tasks have completed for {self.__class__.__name__} on {self.ident}")
-
+        dfk.cleanup()
         logger.info("Shutting down the error handling thread")
         self.error_checker.kill = True
 
